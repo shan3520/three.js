@@ -13,6 +13,8 @@ import {
 	SRGBColorSpace
 } from 'three';
 
+const _number_pattern = /^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/;
+
 /**
  * A loader for the MTL format.
  *
@@ -531,6 +533,16 @@ class MaterialCreator {
 		const items = value.split( /\s+/ );
 		let pos;
 
+		// options like -s and -o have up to three values (u v w) where v and w are optional
+
+		function getValueCount( pos ) {
+
+			let count = 0;
+			while ( count < 3 && _number_pattern.test( items[ pos + count + 1 ] ) ) count ++;
+			return count;
+
+		}
+
 		pos = items.indexOf( '-bm' );
 
 		if ( pos >= 0 ) {
@@ -554,8 +566,10 @@ class MaterialCreator {
 
 		if ( pos >= 0 ) {
 
-			texParams.scale.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-			items.splice( pos, 4 ); // we expect 3 parameters here!
+			const count = getValueCount( pos );
+
+			texParams.scale.set( ( count > 0 ) ? parseFloat( items[ pos + 1 ] ) : 1, ( count > 1 ) ? parseFloat( items[ pos + 2 ] ) : 1 );
+			items.splice( pos, count + 1 );
 
 		}
 
@@ -563,8 +577,10 @@ class MaterialCreator {
 
 		if ( pos >= 0 ) {
 
-			texParams.offset.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-			items.splice( pos, 4 ); // we expect 3 parameters here!
+			const count = getValueCount( pos );
+
+			texParams.offset.set( ( count > 0 ) ? parseFloat( items[ pos + 1 ] ) : 0, ( count > 1 ) ? parseFloat( items[ pos + 2 ] ) : 0 );
+			items.splice( pos, count + 1 );
 
 		}
 
